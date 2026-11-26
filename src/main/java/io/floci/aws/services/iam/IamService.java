@@ -206,6 +206,8 @@ public class IamService implements SessionAccountLookup, ResourceProvider {
     private static final String DEFAULT_DEPLOYER_SECRET_ACCESS_KEY = "floci";
     /** An AccessKeyId as IAM documents it: 16 to 128 characters matching {@code [\w]+}. */
     private static final Pattern ACCESS_KEY_ID_PATTERN = Pattern.compile("\\w{16,128}");
+    private static final Pattern ISSUER_ID_PATTERN =
+            Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
     private static final String ACCOUNT_ALIAS_KEY = "account-alias";
     /** As AWS documents it: no leading or trailing dash, and no two dashes in a row. */
     private static final Pattern ACCOUNT_ALIAS_PATTERN =
@@ -550,6 +552,7 @@ public class IamService implements SessionAccountLookup, ResourceProvider {
     private final boolean seedDeployerPrincipal;
     private final String seededDeployerAccessKeyId;
     private final String seededAccountAlias;
+    private String outboundFederationIssuerId;
     /** Guards case-insensitive IAM name uniqueness checks and their corresponding writes. */
     private final Object resourceNameLock = new Object();
     // Undo handles retain their ownership keys; completed attempts leave no permanent history.
@@ -661,6 +664,20 @@ public class IamService implements SessionAccountLookup, ResourceProvider {
                     .documentsByArn(),
             clock
         );
+        useOutboundFederationIssuerId(config.services().iam().outboundFederationIssuerId().orElse(null));
+    }
+
+    /**
+     * Fixes the UUID the default account's outbound web identity federation issuer is minted
+     * with, or leaves it random when {@code null}. Refused at startup unless it's a lowercase UUID,
+     * the form AWS's issuers take, rather than minting an issuer no relying party would expect.
+     */
+    void useOutboundFederationIssuerId(String issuerId) {
+        if (issuerId != null && !ISSUER_ID_PATTERN.matcher(issuerId).matches()) {
+            throw new IllegalArgumentException("floci.services.iam.outbound-federation-issuer-id must be "
+                    + "a lowercase UUID: " + issuerId);
+        }
+        this.outboundFederationIssuerId = issuerId;
     }
 
     IamService(StorageBackend<String, IamUser> users,
@@ -3972,7 +3989,13 @@ public class IamService implements SessionAccountLookup, ResourceProvider {
         String suffix = AwsPartitions.find(regionResolver.getPartition())
                 .map(AwsPartition::dualStackDnsSuffix)
                 .orElseGet(() -> AwsRegions.dnsSuffixFor(regionResolver.getDefaultRegion()));
-        return "https://" + UUID.randomUUID() + ".tokens.sts.global." + suffix;
+        // Only the default account's: every account has its own issuer, so another account that
+        // enables federation still gets a random one
+        String issuerId = outboundFederationIssuerId != null
+                && regionResolver.getAccountId().equals(regionResolver.getDefaultAccountId())
+                ? outboundFederationIssuerId
+                : UUID.randomUUID().toString();
+        return "https://" + issuerId + ".tokens.sts.global." + suffix;
     }
 
     // Server certificates

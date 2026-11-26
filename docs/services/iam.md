@@ -4292,6 +4292,7 @@ of the role it was issued for, whatever region later calls are signed for. See [
 | `FLOCI_SERVICES_IAM_SEED_DEPLOYER_PRINCIPAL` | `false` | Seed the optional `floci-deployer` user and `floci` / `floci` access key |
 | `FLOCI_SERVICES_IAM_SEED_DEPLOYER_ACCESS_KEY_ID` | `floci` | Access key ID of the seeded deployer's key: `floci`, or 16 to 128 word characters, which make it deletable |
 | `FLOCI_SERVICES_IAM_ACCOUNT_ALIAS` | _(unset)_ | Seed an account alias at startup; unset means the account has no alias |
+| `FLOCI_SERVICES_IAM_OUTBOUND_FEDERATION_ISSUER_ID` | _(unset)_ | The lowercase UUID the default account's outbound web identity federation issuer is minted with; unset mints a random one |
 | `FLOCI_SERVICES_IAM_PARTNER_PERMISSION_BOUNDARIES_PATH` | _(unset)_ | A JSON file of partner account id to boundary ARN to policy document, standing in for the permissions boundaries AWS registers for a delegation partner by email; unset means none is registered |
 
 ## Examples

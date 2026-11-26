@@ -1866,6 +1866,14 @@ public interface EmulatorConfig {
         Optional<String> accountAlias();
 
         /**
+         * The UUID the default account's outbound web identity federation issuer is minted with,
+         * {@code https://<uuid>.tokens.sts.global.api.aws}, so a relying party can be given the
+         * issuer and its JWKS URL before Floci starts. Unset mints a random one, as AWS does. It
+         * is used when federation is first enabled: an issuer already stored is kept.
+         */
+        Optional<String> outboundFederationIssuerId();
+
+        /**
          * A file holding the permissions boundaries AWS registers for a delegation partner out of
          * band, as a JSON object of partner account id to an object of boundary ARN to policy
          * document. AWS registers those by email with no API at all, and reports them on a

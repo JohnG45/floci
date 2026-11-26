@@ -276,6 +276,12 @@ ID=$(echo "$ISSUER" | sed -E 's#https://([^.]+)\..*#\1#')
 curl -s "$AWS_ENDPOINT_URL/_floci/sts/web-identity/$ID/.well-known/jwks.json"
 ```
 
+The issuer is minted when federation is first enabled, from a random UUID, so a fresh data volume
+gets a new one. A relying party that has to be configured with the issuer and JWKS URL before Floci
+starts, as in a Compose stack, can fix the default account's with
+`FLOCI_SERVICES_IAM_OUTBOUND_FEDERATION_ISSUER_ID`, a lowercase UUID. Other accounts' issuers stay
+random, and an issuer already stored is kept.
+
 The key set holds one key per algorithm, in the shape of the sample the IAM User Guide gives: the
 `ES384` key with `kty` `EC`, `alg` and `crv` `P-384`, and the `RS256` key with `kty` `RSA`, its
 modulus and exponent. Both are minted on the first read if no token has used them yet, so a key set

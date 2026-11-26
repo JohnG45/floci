@@ -581,6 +581,10 @@ floci:
       # account-alias: ""  # When set, seeds the account alias at startup so callers can read one
                            # without creating it first. Unset means the account has no alias,
                            # matching AWS. Example: FLOCI_SERVICES_IAM_ACCOUNT_ALIAS=my-account
+      # outbound-federation-issuer-id: ""  # When set, the UUID the default account's outbound web
+                           # identity federation issuer is minted with, so a relying party can be
+                           # configured with it up front. Unset mints a random one, matching AWS.
+                           # Example: FLOCI_SERVICES_IAM_OUTBOUND_FEDERATION_ISSUER_ID=<a uuid>
       partner-permission-boundaries-path: ${FLOCI_SERVICES_IAM_PARTNER_PERMISSION_BOUNDARIES_PATH:}
                            # A JSON object of partner account id to an object of boundary ARN to
                            # policy document, standing in for the permissions boundaries AWS
